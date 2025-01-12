@@ -1,4 +1,4 @@
-# What is this project?
+# What Is This Project?
 This project utilizes HTML, CSS, and JavaScript elements for a webpage that a user can interact
 with to simulate rolling 6-sided dice. 
 
