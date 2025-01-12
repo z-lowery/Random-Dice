@@ -1,0 +1,224 @@
+<!--
+    This project utilizes HTML, CSS, and JavaScript elements for a webpage that a user can interact
+    with to simulate rolling 6-sided dice. On launch, 3 dice will be shown. Each die can be rolled individually
+    or simutaniously with the "Roll all dice" button in the bottom left corner. 
+    
+    When a die is rolling, the number shown will flip randomly for 1 to 2 seconds until it lands on a final 
+    result, at which point a short animation will play as a visual indicator that it has finished. The number 
+    of dice on the screen can be also be modified up to 8, with a minimum of 1. 
+    
+    The purpose of this project was to practice combining HTML, CSS, and JavaScript with an end product
+    that is both functional and feels smooth. Hover elements, specific colors, and animations are used to improve
+    the user experience by making it look and feel good. 
+-->
+
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #23272A;
+                margin: 0; /* remove default margins */ 
+                /* following lines centers content vertically and horizontally */ 
+                height: 100vh;
+                display: flex;
+                align-items: center; /* vertical centering (opposite direction of flex direction)*/
+                justify-content: center; /* horizonal centering (direction of flex direction)*/
+                position: relative /* allows positional of child elements RELATIVE to the body */ 
+            }        
+
+            button {
+                background-color: #fffffc;
+                border-color: white;
+                font-family: 'Helvetica';
+                font-weight: bold;
+                border-radius: 6.5px; /* rounds corners */ 
+                border-width: 0;
+
+                transition: background-color .2s ease;
+            }
+
+            button:hover{
+                background-color: #7eaedd;
+            }
+
+            input[type=text]{ 
+                border-radius: 6.5px;
+                border-width: 0;
+            }
+
+            /* positions content to the bottom of the page evenly across the row. 
+             * Used for the "roll all dice" and "change dice number" buttons*/
+            #bottom-row-container { 
+                display: flex; /* horizontal alignment of content by default */
+                position: absolute;
+                bottom: 20px;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            /* class to define a die */
+            .dice { 
+                width: 15vw; 
+                height: 15vw; 
+                border-radius: 15px; /* rounded corners */ 
+                margin: 10px;
+                padding: 20px; 
+                color: #23272A; 
+
+                text-align: center; 
+                font-family: 'Helvetica';
+                font-weight: bold;
+                font-size: 3.8vw;
+
+                transform: scale(1); /* when die is not being hovered over, transition to normal size */
+
+                transition: transform 0.2s ease, font-size 0.2s ease; 
+                cursor: pointer; /* changes cursor icon */
+            }
+
+            .dice:hover{
+                font-size: 4vw;
+                transform: scale(1.05); /* when die IS hovered over, transition to a slightly larger size */ 
+            }
+
+            /* centers elements in container */
+            .center {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            #rollAllDice-button{
+                font-family: 'Helvetica';
+                font-size: 20px;
+            }
+
+            /* defines an animation used when rolling dice */ 
+            .grow-shrink-animation{
+                animation: grow-shrink 0.5s ease-in-out 1;
+            }
+
+            @keyframes grow-shrink{
+                0%{transform: scale(1);}
+                50%{transform: scale(1.05);}
+                100%{transform: scale(1);}
+            }
+
+        </style>
+        <script>
+            // ======= Rolling Dice Functions ======== //
+            /* sSmulates a rolling dice animation for a given die 
+             * 1) Displays random numbers temporarily
+             * 2) Ends w/ final random number
+             * 3) Includes "grow-shrink-animaion" scaling effect as a visual cue */
+            function rollDie(diceElement) {
+                const dice = diceElement;
+                const span = dice.querySelector("span");
+
+                dice.querySelector('span').innerText = "";  // clears the text in the span
+                
+                // Simulate rolling by displaying random numbers temporarily
+                let rollInterval = setInterval(() => {
+                    span.innerText = Math.floor(Math.random() * 6) + 1;
+                    dice.style.fontSize = "8vw"; // increase font size when the dice is rolling 
+                }, 100); // is called every 0.1s
+                
+                // Stop rolling after a random amount of time (1-2s) and set final random value
+                const randVal = Math.floor(Math.random() * 2000) + 1000; // get random amount of time (1 - 2s)
+                setTimeout(() => {
+                    clearInterval(rollInterval);
+                    span.innerText = Math.floor(Math.random() * 6) + 1; // final result of the dice roll
+
+                    dice.classList.add("grow-shrink-animation"); // play grow-shrink animation
+                    
+                    setTimeout(() => {
+                        dice.style.fontSize = "6vw" // revert font size 
+                        dice.classList.remove("grow-shrink-animation"); // remove animation class so it can be played again
+                    }, 500);
+
+                }, randVal); // randomize duration of dice roll (1 - 2s)
+
+            }
+
+            // Simulates rolling all the dice on the page
+            function rollAllDice(){
+                document.querySelectorAll(".dice").forEach( dice => {
+                    rollDie(dice);
+                })
+            }
+
+
+            // ======= Adding Dice Functions ======== //
+            // Changes the amount of dice on the screen 
+            function addUserDice(){
+                const num = document.querySelector("#numDice-input").value;
+                if(num < 1){
+                    num = 1;
+                }
+                if(num <= 8){ // maximum of eight dice on the sceen
+                    addDice(num);
+                }
+            }
+
+            // Deletes all dice on the page and replaces them with a given amount of new dice
+            function addDice(numDice){
+                const container = document.querySelector("#dice-container")
+                
+                // Remove all current dice
+                document.querySelectorAll(".dice").forEach( (dice) => {
+                    container.removeChild(dice);
+                })
+
+                for (let i = 0; i < numDice; i++){
+                    // Create a dice element
+                    const dice = document.createElement("div");
+                    dice.classList.add("dice", "center");
+                    dice.setAttribute("onclick", "rollDie(this)");
+
+                    // Add the text span to the dice
+                    const span = document.createElement("span");
+                    span.innerText = "Click to Roll";
+                    dice.appendChild(span);
+
+                    // Apply random dice color to the die from set list (see below)
+                    randomizeDiceColors(dice);
+
+                    // Append the dice to the container
+                    container.appendChild(dice);
+                }
+            }
+
+            // list of all possible colors that a die can be 
+            const colorList = ["#FFADAD", "#ffd6a5", "#fdffb6", "#caffbf", 
+            "#9bf6ff" , "#a0c4ff", "#bdb2ff", "#ffc6ff", "#fffffc"]; 
+
+            // function to randomize the color of a die
+            function randomizeDiceColors(dice){
+                dice.style.backgroundColor = colorList[Math.floor(Math.random() * (9))]
+            }
+        </script>
+    </head>
+    <body onload = addDice(3)> <!-- Add 3 dice to the screen when the page first loads -->
+        <!-- container to hold all dice elements -->
+        <div class = "center">
+            <div id="dice-container" class = "center"></div>
+        </div>
+        
+        <!-- container to hold button to roll all the dice and button to change num of dice on the page-->
+        <div id="bottom-row-container">
+            <div class="center" style="padding-left: 2vw;">
+                <label>
+                    <button style="font-size: large;" id="rollAllDice-button" onclick=rollAllDice()>Roll all dice</button>
+                </label>
+            </div>
+
+            <div class = "center" style="padding-right: 2vw">
+                <label>
+                    <input id="numDice-input" style="font-size: large; width: 20px; text-align: center;" type="text" value="3">
+                    <button style="font-size: large;" id="numDice-button" onclick=addUserDice()>Change Dice (max 8)</button>
+                </label>
+            </div>
+        </div>
+    </body>
+</html>
